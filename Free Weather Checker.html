@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free Weather Checker Tool – Check Live Weather by City Instantly</title>
+  <meta name="description" content="Use this free weather checker tool to instantly check live weather updates for any city. Get temperature, humidity, wind speed, and real-time weather conditions online.">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+
+    body {
+      background-color: #0d0f14;
+      color: #e0e0e0;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* main container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      width: 100%;
+    }
+
+    /* hero section with particle background */
+    .hero {
+      position: relative;
+      background-color: #0d0f14;
+      border-radius: 2rem;
+      padding: 3rem 2rem;
+      margin-bottom: 2.5rem;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      isolation: isolate;
+      text-align: center;
+    }
+
+    /* floating particles inside hero */
+    .particles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .particle {
+      position: absolute;
+      font-size: 2rem;
+      opacity: 0.2;
+      color: #42f8f5;
+      animation: floatParticle 18s infinite ease-in-out;
+      user-select: none;
+      filter: drop-shadow(0 0 6px rgba(66, 248, 245, 0.4));
+      will-change: transform;
+    }
+
+    @keyframes floatParticle {
+      0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+      25% { transform: translate(15px, -20px) rotate(8deg) scale(1.1); }
+      50% { transform: translate(-10px, -35px) rotate(15deg) scale(0.95); }
+      75% { transform: translate(20px, -15px) rotate(5deg) scale(1.05); }
+      100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+    }
+
+    /* hero content (above particles) */
+    .hero-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 8vw, 3.8rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, #ffffff 0%, #42f8f5 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+      text-shadow: 0 0 15px rgba(66, 248, 245, 0.3);
+    }
+
+    .hero-description {
+      font-size: 1.25rem;
+      color: #c5d1de;
+      max-width: 600px;
+      margin: 0 auto 2rem auto;
+    }
+
+    /* search form */
+    .search-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    #cityInput {
+      flex: 3 1 260px;
+      padding: 1rem 1.5rem;
+      background-color: #1c222d;
+      border: 1.5px solid #2f3745;
+      border-radius: 60px;
+      font-size: 1.1rem;
+      color: #ffffff;
+      outline: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 0 0 rgba(66, 248, 245, 0);
+    }
+
+    #cityInput:focus {
+      border-color: #42f8f5;
+      box-shadow: 0 0 0 4px rgba(66, 248, 245, 0.2);
+      background-color: #232a36;
+    }
+
+    #cityInput::placeholder {
+      color: #8f9fb1;
+      font-weight: 400;
+    }
+
+    #checkBtn {
+      flex: 1 1 auto;
+      background-color: #12151a;
+      border: 2px solid #42f8f5;
+      color: #42f8f5;
+      padding: 1rem 2.2rem;
+      border-radius: 60px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 0 10px rgba(66, 248, 245, 0.2);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    #checkBtn:hover {
+      background-color: #42f8f5;
+      color: #0d0f14;
+      border-color: #42f8f5;
+      box-shadow: 0 0 25px rgba(66, 248, 245, 0.8);
+      transform: scale(1.03);
+    }
+
+    #checkBtn:active {
+      transform: scale(0.98);
+    }
+
+    /* loading spinner */
+    .loading-container {
+      display: flex;
+      justify-content: center;
+      margin: 1.8rem 0;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 5px solid #2a3440;
+      border-top: 5px solid #42f8f5;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      box-shadow: 0 0 15px rgba(66, 248, 245, 0.3);
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* weather result card */
+    .result-card {
+      background: #1c222d;
+      border: 2px solid #42f8f5;
+      border-radius: 2rem;
+      padding: 2rem 2rem;
+      margin: 2rem 0 3rem 0;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(66, 248, 245, 0.4);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      animation: fadeInUp 0.6s ease-out;
+      max-width: 550px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .result-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 30px 50px rgba(0, 0, 0, 0.7), 0 0 45px rgba(66, 248, 245, 0.6);
+    }
+
+    @keyframes fadeInUp {
+      0% { opacity: 0; transform: translateY(30px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .city-name {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px dashed #42f8f5;
+      padding-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .city-name span {
+      background: #42f8f5;
+      color: #0d0f14;
+      font-size: 1rem;
+      padding: 0.2rem 1rem;
+      border-radius: 40px;
+      font-weight: 500;
+    }
+
+    .weather-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .temp-large {
+      font-size: 4rem;
+      font-weight: 300;
+      color: #42f8f5;
+      line-height: 1;
+      text-shadow: 0 0 20px rgba(66, 248, 245, 0.5);
+    }
+
+    .weather-icon {
+      font-size: 5rem;
+      filter: drop-shadow(0 0 10px #42f8f5);
+    }
+
+    .condition-text {
+      font-size: 1.8rem;
+      font-weight: 500;
+      color: #ffffff;
+      text-transform: capitalize;
+    }
+
+    .weather-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      background: #12151a;
+      padding: 1.5rem;
+      border-radius: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .detail-label {
+      color: #c5d1de;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+    }
+
+    .detail-value {
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    .detail-value small {
+      font-size: 1rem;
+      color: #42f8f5;
+      font-weight: 400;
+      margin-left: 4px;
+    }
+
+    /* error message */
+    .error-message {
+      background: rgba(255, 70, 70, 0.15);
+      border: 1px solid #ff5f5f;
+      color: #ffb8b8;
+      padding: 1rem 2rem;
+      border-radius: 60px;
+      text-align: center;
+      margin: 1rem auto;
+      max-width: 500px;
+      font-weight: 500;
+      animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+
+    /* SEO content section */
+    .seo-content {
+      background: #12151a;
+      border-radius: 2rem;
+      padding: 2.5rem 2rem;
+      margin-top: 3rem;
+      border: 1px solid #2f3745;
+    }
+
+    .seo-content h2 {
+      color: #42f8f5;
+      font-size: 1.8rem;
+      margin-bottom: 1.2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      border-left: 6px solid #42f8f5;
+      padding-left: 1.2rem;
+    }
+
+    .seo-content p {
+      color: #c5d1de;
+      font-size: 1.1rem;
+      margin-bottom: 1.4rem;
+      max-width: 850px;
+    }
+
+    .seo-content p:last-of-type {
+      margin-bottom: 0;
+    }
+
+    hr {
+      border: 0.5px solid #2f3745;
+      margin: 2rem 0;
+    }
+
+    /* utility */
+    .hidden {
+      display: none !important;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    /* responsive adjustments */
+    @media (max-width: 600px) {
+      .container { padding: 1rem; }
+      .hero { padding: 2rem 1rem; }
+      .result-card { padding: 1.5rem; }
+      .weather-details { grid-template-columns: 1fr; }
+      .city-name { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <!-- HERO SECTION (directly starts page) -->
+    <section class="hero">
+      <!-- floating particles injected via JS -->
+      <div class="particles" id="particlesContainer"></div>
+
+      <div class="hero-content">
+        <h1>Free Weather Checker Tool</h1>
+        <p class="hero-description">Instant, accurate weather for any city. Real-time data at your fingertips.</p>
+
+        <div class="search-form">
+          <input type="text" id="cityInput" placeholder="e.g. London, Tokyo, New York" value="London">
+          <button id="checkBtn">Check Weather</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- loading indicator (hidden initially) -->
+    <div id="loading" class="loading-container hidden">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- weather result card (hidden until first search) -->
+    <div id="resultContainer" class="result-card hidden">
+      <div class="city-name" id="cityDisplay">--</div>
+      <div class="weather-main">
+        <span class="temp-large" id="temperatureDisplay">--°C</span>
+        <span class="weather-icon" id="iconDisplay">☀️</span>
+      </div>
+      <div class="condition-text" id="conditionDisplay">--</div>
+
+      <div class="weather-details">
+        <div class="detail-item">
+          <span class="detail-label">Humidity</span>
+          <span class="detail-value" id="humidityDisplay">--<small>%</small></span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Wind Speed</span>
+          <span class="detail-value" id="windDisplay">--<small>km/h</small></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- error area -->
+    <div id="errorMessage" class="error-message hidden"></div>
+
+    <!-- SEO CONTENT SECTION (optimized) -->
+    <section class="seo-content">
+      <h2>How to Use the Free Weather Checker Tool</h2>
+      <p>Simply type any city name into the input field above (e.g., “Berlin” or “Paris”) and click the “Check Weather” button. Our tool instantly retrieves real‑time meteorological data — temperature, humidity, wind speed, and current conditions — all presented in a sleek, easy‑to‑read card. No sign‑up, no API keys, and completely free.</p>
+
+      <h2>Why Use Our Free Weather Checker</h2>
+      <p>Whether you're planning travel, checking outdoor conditions, or just curious, this tool gives you reliable, up‑to‑the‑minute weather without ads or clutter. The data comes from a high‑precision global forecast model, ensuring you get accurate readings wherever you are. The modern cyan‑glow interface updates instantly, and the floating particle animation makes checking weather almost magical.</p>
+
+      <h2>Real-Time Weather Data</h2>
+      <p>Powered by Open‑Meteo’s free and open weather APIs, our tool provides live temperature (in Celsius), humidity percentage, wind speed (km/h), and a descriptive weather condition with a matching icon. The underlying geocoding service converts your city name to precise coordinates, then fetches the latest observations. It’s fast, private (no key required), and beautifully displayed with smooth fade‑in effects and card hover animations.</p>
+      <p style="font-size: 0.95rem; color: #8f9fb1; margin-top: 1.5rem;">🔹 Free Weather Checker Tool — real‑time forecasts, zero cost. 🔹</p>
+    </section>
+  </main>
+
+  <script>
+    (function() {
+      // ---------- CREATE FLOATING PARTICLES (sun, cloud, rain, wind) ----------
+      function initParticles() {
+        const container = document.getElementById('particlesContainer');
+        if (!container) return;
+        const icons = ['☀️', '☁️', '🌧️', '💨', '⛅', '🌤️', '🌦️', '🌪️'];
+        const particleCount = 24; // smooth density
+
+        for (let i = 0; i < particleCount; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+          // random icon from array
+          const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+          particle.textContent = randomIcon;
+          
+          // random position (within hero)
+          const left = Math.random() * 100; // % 
+          const top = Math.random() * 100;   // %
+          particle.style.left = left + '%';
+          particle.style.top = top + '%';
+          
+          // random size
+          const size = 1.2 + Math.random() * 2.2; // rem
+          particle.style.fontSize = size + 'rem';
+          
+          // random animation duration (12s to 28s)
+          const duration = 12 + Math.random() * 20;
+          particle.style.animationDuration = duration + 's';
+          
+          // random delay
+          particle.style.animationDelay = (Math.random() * 5) + 's';
+          
+          // random opacity (between 0.15 and 0.4)
+          particle.style.opacity = 0.15 + Math.random() * 0.25;
+          
+          container.appendChild(particle);
+        }
+      }
+      initParticles();
+
+      // ---------- DOM elements ----------
+      const cityInput = document.getElementById('cityInput');
+      const checkBtn = document.getElementById('checkBtn');
+      const loadingDiv = document.getElementById('loading');
+      const resultCard = document.getElementById('resultContainer');
+      const errorDiv = document.getElementById('errorMessage');
+      
+      const cityDisplay = document.getElementById('cityDisplay');
+      const temperatureDisplay = document.getElementById('temperatureDisplay');
+      const iconDisplay = document.getElementById('iconDisplay');
+      const conditionDisplay = document.getElementById('conditionDisplay');
+      const humidityDisplay = document.getElementById('humidityDisplay');
+      const windDisplay = document.getElementById('windDisplay');
+
+      // ---------- weather code mapping (WMO) ----------
+      function getWeatherInfo(code) {
+        // WMO codes from Open-Meteo: https://open-meteo.com/en/docs
+        if (code === 0) return { text: 'Clear sky', icon: '☀️' };
+        if (code === 1) return { text: 'Mainly clear', icon: '🌤️' };
+        if (code === 2) return { text: 'Partly cloudy', icon: '⛅' };
+        if (code === 3) return { text: 'Overcast', icon: '☁️' };
+        if (code === 45 || code === 48) return { text: 'Fog', icon: '🌫️' };
+        if (code >= 51 && code <= 55) return { text: 'Drizzle', icon: '🌧️' };
+        if (code >= 61 && code <= 65) return { text: 'Rain', icon: '🌧️' };
+        if (code >= 71 && code <= 75) return { text: 'Snow', icon: '❄️' };
+        if (code === 80 || code === 81 || code === 82) return { text: 'Rain showers', icon: '🌦️' };
+        if (code >= 95 && code <= 99) return { text: 'Thunderstorm', icon: '⛈️' };
+        return { text: 'Unknown', icon: '🌡️' };
+      }
+
+      // ---------- show/hide helpers ----------
+      function showLoading() {
+        loadingDiv.classList.remove('hidden');
+        resultCard.classList.add('hidden');
+        errorDiv.classList.add('hidden');
+      }
+
+      function hideLoading() {
+        loadingDiv.classList.add('hidden');
+      }
+
+      function showError(message) {
+        errorDiv.textContent = message;
+        errorDiv.classList.remove('hidden');
+        resultCard.classList.add('hidden');
+        hideLoading();
+      }
+
+      function displayWeather(data, cityName, country) {
+        // data contains current.temperature_2m, current.relative_humidity_2m, current.wind_speed_10m, current.weathercode
+        const temp = data.current?.temperature_2m ?? '?';
+        const humidity = data.current?.relative_humidity_2m ?? '?';
+        const wind = data.current?.wind_speed_10m ?? '?';
+        const wmoCode = data.current?.weathercode ?? 0;
+        
+        const weather = getWeatherInfo(wmoCode);
+        
+        cityDisplay.innerHTML = `${cityName} ${country ? `<span>${country}</span>` : ''}`;
+        temperatureDisplay.textContent = temp !== '?' ? `${Math.round(temp)}°C` : '--°C';
+        iconDisplay.textContent = weather.icon;
+        conditionDisplay.textContent = weather.text;
+        humidityDisplay.textContent = humidity !== '?' ? humidity : '--';
+        windDisplay.textContent = wind !== '?' ? Math.round(wind) : '--';
+        
+        hideLoading();
+        resultCard.classList.remove('hidden');
+      }
+
+      // ---------- main fetch function ----------
+      async function fetchWeatherForCity(city) {
+        if (!city.trim()) {
+          showError('Please enter a city name.');
+          return;
+        }
+
+        showLoading();
+
+        try {
+          // 1. Geocoding to get lat/lon from city name (Open-Meteo Geocoding API)
+          const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en`;
+          const geoRes = await fetch(geoUrl);
+          if (!geoRes.ok) throw new Error('Geocoding service failed.');
+          const geoData = await geoRes.json();
+
+          if (!geoData.results || geoData.results.length === 0) {
+            showError(`City "${city}" not found. Please check the name.`);
+            return;
+          }
+
+          const { latitude, longitude, name, country } = geoData.results[0];
+
+          // 2. Fetch current weather including temperature, humidity, wind, weathercode
+          const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weathercode&timezone=auto`;
+          const weatherRes = await fetch(weatherUrl);
+          if (!weatherRes.ok) throw new Error('Weather data service failed.');
+          const weatherData = await weatherRes.json();
+
+          // 3. Display
+          displayWeather(weatherData, name, country);
+        } catch (err) {
+          console.error(err);
+          showError('Network error or invalid response. Please try again.');
+        }
+      }
+
+      // ---------- event listeners ----------
+      checkBtn.addEventListener('click', () => {
+        fetchWeatherForCity(cityInput.value.trim());
+      });
+
+      cityInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          fetchWeatherForCity(cityInput.value.trim());
+        }
+      });
+
+      // optional: load default city on page load (London)
+      window.addEventListener('load', () => {
+        fetchWeatherForCity('London');
+      });
+    })();
+  </script>
+</body>
+</html>
